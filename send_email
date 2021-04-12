@@ -1,0 +1,80 @@
+"""Рассылка запроса и сверок взаиморасчетов"""
+import email, smtplib, ssl
+import smtplib  # Импортируем библиотеку по работе с SMTP
+import os  # Функции для работы с операционной системой, не зависящие от используемой операционной системы
+
+# Добавляем необходимые подклассы - MIME-типы
+import mimetypes  # Импорт класса для обработки неизвестных MIME-типов, базирующихся на расширении файла
+from email import encoders  # Импортируем энкодер
+from email.mime.base import MIMEBase  # Общий тип
+from email.mime.text import MIMEText  # Текст/HTML
+from email.mime.image import MIMEImage  # Изображения
+from email.mime.audio import MIMEAudio  # Аудио
+from email.mime.multipart import MIMEMultipart  # Многокомпонентный объект
+import time
+
+error = []
+countofletter = 0  # счетчик отправленных писем
+# duble_addres = 'adress@ya.ru'
+name_book = 'addr'  # файл, содержащий адреса для рассылки, использую обычный файл блокнота txt,
+
+
+# адреса записаны - каждый с новой строки
+
+
+def send_email(address):  # функция отправки писем с файлом по переданному в функцию адресу
+
+    # attach image to message body
+    filepath = 'name_of_file.pdf'  # имя файла, который надо отправить в письме
+
+    basename = os.path.basename(filepath)
+
+    filesize = os.path.getsize(filepath)
+
+    addr_from = "from_address@mail.ru"  # почта отправителя
+
+    addr_to = f'{address}'  # , {duble_addres}'  # Получатель
+
+    password = "пароль от почты"  # Пароль почты отправителя
+
+    msg = MIMEMultipart()  # Создаем сообщение
+
+    msg['From'] = addr_from  # Адресат
+
+    msg['To'] = addr_to  # Получатель
+
+    body = 'Здравствуйте. Высылаем Вам уведомление о смене генерального директора"'
+    part_file = MIMEBase('application', 'octet-stream; name="{}"'.format(basename))
+    part_file.set_payload(open(filepath, "rb").read())
+    part_file.add_header('Content-Description', basename)
+    part_file.add_header('Content-Disposition', 'attachment; filename="{}"; size={}'.format(basename, filesize))
+    encoders.encode_base64(part_file)
+    msg.attach(MIMEText(body, 'plain'))  # Добавляем в сообщение текст
+    msg.attach(part_file)
+
+    server = smtplib.SMTP("smtp.mail.ru", 587)  # Создаем объект SMTP
+    server.set_debuglevel(True)  # Включаем режим отладки - если отчет не нужен, строку можно закомментировать
+    server.starttls()  # Начинаем шифрованный обмен по TLS
+    server.login(addr_from, password)  # Получаем доступ
+    server.send_message(msg)  # Отправляем сообщение
+    server.quit()  # Выходим
+
+
+with open(f'{name_book}.txt', 'r') as f:  # чтение файла с адресами и передача их в функцию send_email
+    nums = f.read().splitlines()
+for address in nums:
+    print(address)  # это не обязательно
+    countofletter += 1  # счетчик считает отправленные письма, что бы делать паузы,
+    # иначе адрес отправителя может попасть в спам
+    if countofletter == 5:
+        countofletter = 0
+        time.sleep(5)  # задержка отправки 5 сек, после 5х отправленных писем.
+    else:
+        try:  # блок исключения остановки программы из-зи битого адреса,
+            # программа продолжит работу,  битый адрес будет распечатан
+            send_email(address)
+        except Exception:
+            error.append(address)
+            continue
+
+print('error', error)  # печать на экран битых адресов
