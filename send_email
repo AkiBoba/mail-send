@@ -13,13 +13,10 @@ from email.mime.audio import MIMEAudio  # Аудио
 from email.mime.multipart import MIMEMultipart  # Многокомпонентный объект
 import time
 
-error = []
+error = []  # список, который будет содержать адреса, по которым не получилась рассылка
 countofletter = 0  # счетчик отправленных писем
 # duble_addres = 'adress@ya.ru'
-name_book = 'addr'  # файл, содержащий адреса для рассылки, использую обычный файл блокнота txt,
-
-
-# адреса записаны - каждый с новой строки
+name_book = 'addr'  # файл, содержащий адреса для рассылки, использую обычный файл блокнота txt, адреса записаны - каждый с новой строки
 
 
 def send_email(address):  # функция отправки писем с файлом по переданному в функцию адресу
@@ -43,7 +40,7 @@ def send_email(address):  # функция отправки писем с фай
 
     msg['To'] = addr_to  # Получатель
 
-    body = 'Здравствуйте. Высылаем Вам уведомление о смене генерального директора"'
+    body = 'Здравствуйте. Высылаем Вам уведомление о смене генерального директора'  # Текс, который увидит получатель в теле письма, поле темы письма будет автоматически заполнено текстом, аналогичным названию прикрепленного файла
     part_file = MIMEBase('application', 'octet-stream; name="{}"'.format(basename))
     part_file.set_payload(open(filepath, "rb").read())
     part_file.add_header('Content-Description', basename)
