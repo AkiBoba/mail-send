@@ -1,0 +1,56 @@
+"""Рассылка запроса и сверок взаиморасчетов"""
+
+import smtplib  # Импортируем библиотеку по работе с SMTP
+# Добавляем необходимые подклассы - MIME-типы
+from email.mime.multipart import MIMEMultipart  # Многокомпонентный объект
+from email.mime.text import MIMEText  # Текст/HTML
+import time
+
+error = []  # список ошибок
+countofletter = 0  # счетчик отправленных писем
+
+with open('C:\\PycharmProjects\\Работа с почтой и рассылками\\почты.txt', 'r') as list_mail:  # указываем путь к
+    # файлу с адресами
+    for address in list_mail:
+        print(address)
+        countofletter += 1
+        if countofletter == 5:
+            countofletter = 0
+            time.sleep(2)  # задержка отправки 5 сек, после 2х отправленных писем.
+        else:
+            try:
+
+                addr_from = "address_from@yandex.ru"  # почта отправителя
+
+                addr_to = f'{address}'  # Получатель
+
+                password = "password"  # Пароль почты отправителя
+
+                msg = MIMEMultipart()  # Создаем сообщение
+
+                msg['From'] = addr_from  # Адресат
+
+                msg['To'] = addr_to  # Получатель
+
+                msg[
+                    'Subject'] = 'Запрос акта сверки за 1 квартал 2021 г. ООО "ВАШ ООО" (ИНН ВАШ ИНН)'  # Тема
+                # сообщения
+
+                body = 'Добрый день, просим прислать Акт сверки за 1 квартал 2021 г. Заранее спасибо.\nООО "ВАШ ООО" (ИНН ' \
+                       'ВАШ ИНН) '  # Текст в теле письма
+                msg.attach(MIMEText(body, 'plain'))  # Добавляем в сообщение текст
+
+                server = smtplib.SMTP("smtp.yandex.ru", 587)  # Создаем объект SMTP
+                server.set_debuglevel(
+                    True)  # Включаем режим отладки - если отчет не нужен, строку можно закомментировать
+                server.starttls()  # Начинаем шифрованный обмен по TLS
+                server.login(addr_from, password)  # Получаем доступ
+                server.send_message(msg)  # Отправляем сообщение
+                server.quit()  # Выходим
+
+            except Exception:
+                error.append(
+                    address)  # если адрес битый, продолжаем выполнение программы, адрес заносим в список ошибок
+                continue
+
+print(error)
